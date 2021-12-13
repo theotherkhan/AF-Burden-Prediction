@@ -1,12 +1,14 @@
 # Ignore node_modules folder
 Training_set_I
 Training_set_II
-Temporary
+tempdata
 Archive
-afib_data/Training_set_I
-afib_data/Training_set_II
-afib_data/Temporary
-afib_data/Archive
+
+/Training_set_I
+/Training_set_II
+/tempdata
+/Archive
+
 
 # Ignore all text files
 *.csv
