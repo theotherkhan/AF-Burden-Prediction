@@ -71,63 +71,66 @@ def build_chunked_input(seconds):
         
         print(sample)
         #print(i, end='\r')
-        
-        sample_path = os.path.join(DATA_PATH, sample)
-        sig, sig_len, fs, label, label_arr, beat_loc = load_record(sample_path)
-        
-        r_peaks = beat_loc
-        #qrs_peaks = (qrs_detect(sig, fs)).astype(int)
-        #r_peaks = qrs_peaks
-        chunksize = seconds*200
-        
-        #print(sig)
-        #print("\n\nr_peaks: ", r_peaks, len(r_peaks))
-        #print("\nqrs_detect: ", qrs_peaks, len(qrs_peaks))
-        
-        sig = normalize(sig)
-        
-        ## Calculate exact AF ranges in sequence Label arr acts as an index 
-        ## for which peaks in r_peaks are afib
-           
-        af_ranges = []
-        af_range = []
-                
-        for li, l in enumerate(label_arr):
-            if l == "(AFIB" or l == "(AFL":
-                printlabelarr = True
-                start = r_peaks[li] #r_peaks[min(len(r_peaks)-1, li)]
-                af_range.append(start)
-            if l == "(N":
-                stop = r_peaks[li] #r_peaks[min(len(r_peaks)-1, li)]
-                af_range.append(stop)
-                af_ranges.append(af_range)
-                af_range = []
-        
-        #print("\n", af_ranges)
-        
-        ## Label sections of signal as AF/non AF
-        loc_labels = [0]*sig_len
-        for rng in af_ranges:
-            start = rng[0]
-            stop = rng[1]
-            loc_labels[ start : stop ] = [1] * (stop-start) 
-        
-        ## Break signal and label sequences down to n-second chunks
-        chunked_sig = chunks(sig, chunksize)[:-1]
-        chunked_label = chunks(loc_labels, chunksize)[:-1]
-        
-        ## Calculate AF Burden per sequence based on AF ranges
-        burden=0
-        for rng in af_ranges:
-            burden+=rng[1]-rng[0] 
-        burden = burden/sig_len  
 
-        input_df.at[i, 'Sequence Number'] = i
-        input_df.at[i, 'Chunked Signal'] = chunked_sig
-        input_df.at[i, 'Chunked Label'] = chunked_label
-        input_df.at[i, 'Signal Length'] = sig_len
-        input_df.at[i, 'Sequence Label'] = label
-        input_df.at[i, 'AF Burden'] = burden
+        try:
+            sample_path = os.path.join(DATA_PATH, sample)
+            sig, sig_len, fs, label, label_arr, beat_loc = load_record(sample_path)
+            
+            r_peaks = beat_loc
+            #qrs_peaks = (qrs_detect(sig, fs)).astype(int)
+            #r_peaks = qrs_peaks
+            chunksize = seconds*200
+            
+            #print(sig)
+            #print("\n\nr_peaks: ", r_peaks, len(r_peaks))
+            #print("\nqrs_detect: ", qrs_peaks, len(qrs_peaks))
+            
+            sig = normalize(sig)
+            
+            ## Calculate exact AF ranges in sequence Label arr acts as an index 
+            ## for which peaks in r_peaks are afib
+            
+            af_ranges = []
+            af_range = []
+                    
+            for li, l in enumerate(label_arr):
+                if l == "(AFIB" or l == "(AFL":
+                    printlabelarr = True
+                    start = r_peaks[li] #r_peaks[min(len(r_peaks)-1, li)]
+                    af_range.append(start)
+                if l == "(N":
+                    stop = r_peaks[li] #r_peaks[min(len(r_peaks)-1, li)]
+                    af_range.append(stop)
+                    af_ranges.append(af_range)
+                    af_range = []
+            
+            #print("\n", af_ranges)
+            
+            ## Label sections of signal as AF/non AF
+            loc_labels = [0]*sig_len
+            for rng in af_ranges:
+                start = rng[0]
+                stop = rng[1]
+                loc_labels[ start : stop ] = [1] * (stop-start) 
+            
+            ## Break signal and label sequences down to n-second chunks
+            chunked_sig = chunks(sig, chunksize)[:-1]
+            chunked_label = chunks(loc_labels, chunksize)[:-1]
+            
+            ## Calculate AF Burden per sequence based on AF ranges
+            burden=0
+            for rng in af_ranges:
+                burden+=rng[1]-rng[0] 
+            burden = burden/sig_len  
+
+            input_df.at[i, 'Sequence Number'] = i
+            input_df.at[i, 'Chunked Signal'] = chunked_sig
+            input_df.at[i, 'Chunked Label'] = chunked_label
+            input_df.at[i, 'Signal Length'] = sig_len
+            input_df.at[i, 'Sequence Label'] = label
+            input_df.at[i, 'AF Burden'] = burden
+        except:
+            print("Skip record")
         
     ## Convert from sequence-level df into chunk-level df
     input_df = input_df.explode(["Chunked Signal", "Chunked Label"])
