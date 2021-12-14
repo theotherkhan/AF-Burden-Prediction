@@ -25,7 +25,7 @@ from keras import metrics
 import warnings
 warnings.filterwarnings('ignore')
 
-DATA_PATH = "/Users/Hasan/Desktop/Workspace/cpsc2021-AFIB/Project/data"
+DATA_PATH = "/home/hk3550/cpsc2021-AFIB/Project/data"
 
 def load_record(sample_path):
     
@@ -71,6 +71,7 @@ def build_chunked_input(seconds):
         
         print(sample)
         #print(i, end='\r')
+        
         sample_path = os.path.join(DATA_PATH, sample)
         sig, sig_len, fs, label, label_arr, beat_loc = load_record(sample_path)
         
