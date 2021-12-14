@@ -62,15 +62,15 @@ def build_chunked_input(seconds):
         
     ''' Builds chunked signal input  '''
         
-    test_set = open(os.path.join(DATA_PATH, 'RECORDS'), 'r').read().splitlines()
+    test_set = open(os.path.join(DATA_PATH, 'RECORDS'), 'r').read().splitlines()[300:]
 
     input_df = pd.DataFrame(columns=["Sequence Number", "Chunked Signal", "Sequence Label", 
                                      "Chunked Label", "Signal Length", "AF Burden"])
       
     for i, sample in enumerate(test_set):
         
-        print(sample)
-        #print(i, end='\r')
+        #print(sample)
+        print(i, end='\r')
 
         try:
             sample_path = os.path.join(DATA_PATH, sample)
