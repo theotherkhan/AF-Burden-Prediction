@@ -4,11 +4,6 @@ Training_set_II
 tempdata
 Archive
 
-/Training_set_I
-/Training_set_II
-/tempdata
-/Archive
-
 
 # Ignore all text files
 *.csv
