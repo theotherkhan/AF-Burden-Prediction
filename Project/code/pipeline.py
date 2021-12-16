@@ -27,7 +27,7 @@ from keras import metrics
 import warnings
 warnings.filterwarnings('ignore')
 
-DATA_PATH = "/Users/Hasan/Desktop/Workspace/cpsc2021-AFIB/Project/data"
+DATA_PATH = "/Users/Hasan/Desktop/Workspace/AF-Burden-Prediction/Project/data"
 
 def load_record(sample_path):
     
