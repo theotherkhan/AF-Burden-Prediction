@@ -18,7 +18,9 @@ from keras.preprocessing import sequence
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
 from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import precision_recall_fscore_support
 from sklearn.preprocessing import LabelEncoder
+
 import time
 from keras import metrics
 
@@ -162,7 +164,7 @@ if __name__ == '__main__':
     ## Build network
     
     batch = 16
-    epochs = 5
+    epochs = 3
     shape = np.size(X_train, 1)
     filters = (100, 160)
     drop = 0.3
@@ -183,13 +185,16 @@ if __name__ == '__main__':
             metrics=['accuracy'])
 
     X_train = np.expand_dims(X_train, 2)
-    X_test = np.expand_dims(X_test, 2)
 
     print("Number of layers: ", len(model.layers))
 
     print("\nTraining CNN...")
     model.fit(X_train,y_train, batch_size = batch, epochs = epochs)
-    score = model.evaluate(X_test, y_test, batch_size = batch)
+    try:
+        X_test_expand = np.expand_dims(X_test, 2)
+        score = model.evaluate(X_test_expand, y_test, batch_size = batch)
+    except:
+        score = model.evaluate(X_test, y_test, batch_size = batch)
 
     ## Saving Model
     
@@ -212,11 +217,14 @@ if __name__ == '__main__':
     y_test['y_pred'] = y_test['y_pred'].astype(float)
 
     cm = confusion_matrix(y_test['y_true'], y_test['y_pred'])
+    
+    precision, recall, _, _ = precision_recall_fscore_support(y_test['y_true'], y_test['y_pred'], average='macro')
 
     print("\n Accuracy: ", score[1])
-    print(" Loss: ", score[0])
-    print(" F1 score: ", f1_score(y_test['y_true'], y_test['y_pred'], average='macro'))
-    print(" Confusion Matrix: \n", cm)
+    print("\n Loss: ", score[0])
+    print("\n Precision: ", precision, " Recall: ", recall)
+    print("\n F1 score: ", f1_score(y_test['y_true'], y_test['y_pred'], average='macro'))
+    print("\n Confusion Matrix: \n", cm)
 
     ## Append predictions to test dataset
 
@@ -229,10 +237,10 @@ if __name__ == '__main__':
     chunked_test['y_pred_2'] = chunked_test['y_pred']
 
     seq_test = (chunked_test.drop(columns=['Chunked Signal'])
-        .groupby(['Sequence Number', 'Sequence Label', 'AF Burden', 'Signal Length'])
-        .agg({'Chunked Label': lambda x: x.tolist() , 'y_pred': lambda x: x.tolist(), 'y_pred_2':'sum', })
-        .rename({'y_pred_2' : 'AF Episodes'},axis=1)
-        .reset_index())
+          .groupby(['Sequence Number', 'Sequence Label', 'AF Burden', 'Signal Length'])
+          .agg({'Chunked Label': lambda x: x.tolist() , 'y_pred': lambda x: x.tolist(), 'y_pred_2':'sum', })
+          .rename({'y_pred_2' : 'AF Episodes'},axis=1)
+          .reset_index())
 
     seq_test['Predicted AF Burden'] = (seq_test['AF Episodes']*seconds*200) / seq_test['Signal Length']
 
@@ -241,5 +249,7 @@ if __name__ == '__main__':
 
     burden_mae = mean_absolute_error(seq_test['AF Burden'],seq_test['Predicted AF Burden'])
     print("Burden MAE: ", burden_mae)
+    
 
-    seq_test.to_pickle("final_test_" + str(seconds) + "SEC.pkl")
+
+
